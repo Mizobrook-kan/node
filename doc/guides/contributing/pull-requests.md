@@ -1,10 +1,5 @@
 # Pull Requests
 
-There are two fundamental components of the Pull Request process: one concrete
-and technical, and one more process oriented. The concrete and technical
-component involves the specific details of setting up your local environment
-so that you can make the actual changes. This is where we will start.
-
 * [Dependencies](#dependencies)
 * [Setting up your local environment](#setting-up-your-local-environment)
   * [Step 1: Fork](#step-1-fork)
@@ -596,7 +591,7 @@ More than one subsystem may be valid for any particular issue or pull request.
 
 [Building guide]: ../../../BUILDING.md
 [CI (Continuous Integration) test run]: #ci-testing
-[Code of Conduct]: https://github.com/nodejs/admin/blob/master/CODE_OF_CONDUCT.md
+[Code of Conduct]: https://github.com/nodejs/admin/blob/HEAD/CODE_OF_CONDUCT.md
 [Collaborator Guide]: ../collaborator-guide.md
 [IRC in the #node-dev channel]: https://webchat.freenode.net?channels=node-dev&uio=d4
 [Onboarding guide]: ../../../onboarding.md
@@ -605,5 +600,5 @@ More than one subsystem may be valid for any particular issue or pull request.
 [guide for writing tests in Node.js]: ../writing-tests.md
 [hiding-a-comment]: https://help.github.com/articles/managing-disruptive-comments/#hiding-a-comment
 [https://ci.nodejs.org/]: https://ci.nodejs.org/
-[pull request template]: https://raw.githubusercontent.com/nodejs/node/master/.github/PULL_REQUEST_TEMPLATE.md
+[pull request template]: https://raw.githubusercontent.com/nodejs/node/HEAD/.github/PULL_REQUEST_TEMPLATE.md
 [running tests]: ../../../BUILDING.md#running-tests

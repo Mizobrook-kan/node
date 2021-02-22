@@ -138,7 +138,7 @@
         'cflags': [ '-Werror', '-Wno-unknown-pragmas' ],
       },{
         'cflags!': [ '-Wall', '-Wextra' ],
-        'cflags': [ '-Wno-return-type', '-Wno-int-in-bool-context' ],
+        'cflags': [ '-Wno-return-type' ],
       }],
       ['v8_target_arch=="arm"', {
         'defines': [
@@ -1106,7 +1106,6 @@
           'ENABLE_DISASSEMBLER',
           'V8_ENABLE_CHECKS',
           'OBJECT_PRINT',
-          'VERIFY_HEAP',
           'DEBUG',
           'V8_TRACE_MAPS',
           'V8_ENABLE_ALLOCATION_TIMEOUT',

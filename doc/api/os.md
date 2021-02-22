@@ -115,7 +115,7 @@ The properties included on each object include:
       idle: 1070905480,
       irq: 20
     }
-  }
+  },
 ]
 ```
 
@@ -149,7 +149,7 @@ added: v10.10.0
 -->
 
 * `pid` {integer} The process ID to retrieve scheduling priority for.
-  **Default** `0`.
+  **Default:** `0`.
 * Returns: {integer}
 
 Returns the scheduling priority for the process specified by `pid`. If `pid` is
@@ -300,7 +300,7 @@ added: v10.10.0
 -->
 
 * `pid` {integer} The process ID to set scheduling priority for.
-  **Default** `0`.
+  **Default:** `0`.
 * `priority` {integer} The scheduling priority to assign to the process.
 
 Attempts to set the scheduling priority for the process specified by `pid`. If
@@ -367,6 +367,18 @@ changes:
 * Returns: {integer}
 
 Returns the system uptime in number of seconds.
+
+The value returned can be inaccurate in some
+rare virtualization cases. The issue arises when the virtualized
+guest instance shares the kernel with the host system.
+Due to the fact that libuv uses a syscall that
+provides host's uptime instead of guest's
+uptime on OpenVZ, `os.uptime()` may also provide
+erroneous result.
+
+Please refer to <https://github.com/nodejs/node/issues/36244> and
+<https://github.com/libuv/libuv/issues/3068> for an exploration of
+this issue, until it is resolved by libuv.
 
 ## `os.userInfo([options])`
 <!-- YAML

@@ -1,6 +1,9 @@
 # Modules: `module` API
 
-<!--introduced_in=v0.3.7-->
+<!--introduced_in=v12.20.0-->
+<!-- YAML
+added: v0.3.7
+-->
 
 ## The `Module` object
 
@@ -56,34 +59,6 @@ const require = createRequire(import.meta.url);
 const siblingModule = require('./sibling-module');
 ```
 
-### `module.createRequireFromPath(filename)`
-<!-- YAML
-added: v10.12.0
-deprecated: v12.2.0
--->
-
-> Stability: 0 - Deprecated: Please use [`createRequire()`][] instead.
-
-* `filename` {string} Filename to be used to construct the relative require
-  function.
-* Returns: {require} Require function
-
-```js
-const { createRequireFromPath } = require('module');
-const requireUtil = createRequireFromPath('../src/utils/');
-
-// Require `../src/utils/some-tool`
-requireUtil('./some-tool');
-```
-
-### `module.isPreloading`
-<!-- YAML
-added: v15.4.0
--->
-
-* Type: {boolean} `true` if the module is running during the Node.js preload
-  phase.
-
 ### `module.syncBuiltinESMExports()`
 <!-- YAML
 added: v12.12.0
@@ -95,21 +70,29 @@ does not add or remove exported names from the [ES Modules][].
 
 ```js
 const fs = require('fs');
+const assert = require('assert');
 const { syncBuiltinESMExports } = require('module');
 
-fs.readFile = null;
+fs.readFile = newAPI;
 
 delete fs.readFileSync;
 
-fs.newAPI = function newAPI() {
+function newAPI() {
   // ...
-};
+}
+
+fs.newAPI = newAPI;
 
 syncBuiltinESMExports();
 
 import('fs').then((esmFS) => {
-  assert.strictEqual(esmFS.readFile, null);
-  assert.strictEqual('readFileSync' in fs, true);
+  // It syncs the existing readFile property with the new value
+  assert.strictEqual(esmFS.readFile, newAPI);
+  // readFileSync has been deleted from the required fs
+  assert.strictEqual('readFileSync' in fs, false);
+  // syncBuiltinESMExports() does not remove readFileSync from esmFS
+  assert.strictEqual('readFileSync' in esmFS, true);
+  // syncBuiltinESMExports() does not add names
   assert.strictEqual(esmFS.newAPI, undefined);
 });
 ```
@@ -211,7 +194,6 @@ consists of the following keys:
 [`--enable-source-maps`]: cli.md#cli_enable_source_maps
 [`NODE_V8_COVERAGE=dir`]: cli.md#cli_node_v8_coverage_dir
 [`SourceMap`]: #module_class_module_sourcemap
-[`createRequire()`]: #module_module_createrequire_filename
 [`module`]: modules.md#modules_the_module_object
 [module wrapper]: modules.md#modules_the_module_wrapper
 [source map include directives]: https://sourcemaps.info/spec.html#h.lmz475t4mvbx

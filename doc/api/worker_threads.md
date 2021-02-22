@@ -452,6 +452,12 @@ added:
 
 The `'messageerror'` event is emitted when deserializing a message failed.
 
+Currently, this event is emitted when there is an error occurring while
+instantiating the posted JS object on the receiving end. Such situations
+are rare, but can happen, for instance, when certain Node.js API objects
+are received in a `vm.Context` (where Node.js APIs are currently
+unavailable).
+
 ### `port.close()`
 <!-- YAML
 added: v10.5.0
@@ -468,6 +474,15 @@ are part of the channel.
 <!-- YAML
 added: v10.5.0
 changes:
+  - version: v15.9.0
+    pr-url: https://github.com/nodejs/node/pull/37155
+    description: Add 'Histogram' types to the list of cloneable types.
+  - version: v15.6.0
+    pr-url: https://github.com/nodejs/node/pull/36804
+    description: Added `X509Certificate` to the list of cloneable types.
+  - version: v15.0.0
+    pr-url: https://github.com/nodejs/node/pull/35093
+    description: Added `CryptoKey` to the list of cloneable types.
   - version:
     - v14.5.0
     - v12.19.0
@@ -495,8 +510,13 @@ In particular, the significant differences to `JSON` are:
 * `value` may contain typed arrays, both using `ArrayBuffer`s
    and `SharedArrayBuffer`s.
 * `value` may contain [`WebAssembly.Module`][] instances.
-* `value` may not contain native (C++-backed) objects other than `MessagePort`s,
-  [`FileHandle`][]s, and [`KeyObject`][]s.
+* `value` may not contain native (C++-backed) objects other than:
+  * {CryptoKey}s,
+  * {FileHandle}s,
+  * {Histogram}s,
+  * {KeyObject}s,
+  * {MessagePort}s,
+  * {X509Certificate}s.
 
 ```js
 const { MessageChannel } = require('worker_threads');
@@ -546,11 +566,6 @@ port2.postMessage(sharedUint8Array);
 const otherChannel = new MessageChannel();
 port2.postMessage({ port: otherChannel.port1 }, [ otherChannel.port1 ]);
 ```
-
-Because the object cloning uses the structured clone algorithm,
-non-enumerable properties, property accessors, and object prototypes are
-not preserved. In particular, [`Buffer`][] objects are read as
-plain [`Uint8Array`][]s on the receiving side.
 
 The message object is cloned immediately, and can be modified after
 posting without having side effects.
@@ -605,6 +620,49 @@ The `ArrayBuffer`s for `Buffer` instances created using
 `Buffer.alloc()` or `Buffer.allocUnsafeSlow()` can always be
 transferred but doing so renders all other existing views of
 those `ArrayBuffer`s unusable.
+
+#### Considerations when cloning objects with prototypes, classes, and accessors
+
+Because object cloning uses the [HTML structured clone algorithm][],
+non-enumerable properties, property accessors, and object prototypes are
+not preserved. In particular, [`Buffer`][] objects will be read as
+plain [`Uint8Array`][]s on the receiving side, and instances of JavaScript
+classes will be cloned as plain JavaScript objects.
+
+```js
+const b = Symbol('b');
+
+class Foo {
+  #a = 1;
+  constructor() {
+    this[b] = 2;
+    this.c = 3;
+  }
+
+  get d() { return 4; }
+}
+
+const { port1, port2 } = new MessageChannel();
+
+port1.onmessage = ({ data }) => console.log(data);
+
+port2.postMessage(new Foo());
+
+// Prints: { c: 3 }
+```
+
+This limitation extends to many built-in objects, such as the global `URL`
+object:
+
+```js
+const { port1, port2 } = new MessageChannel();
+
+port1.onmessage = ({ data }) => console.log(data);
+
+port2.postMessage(new URL('https://example.org'));
+
+// Prints: { }
+```
 
 ### `port.ref()`
 <!-- YAML
@@ -804,7 +862,7 @@ changes:
     [`fs.close()`][], and closes them when the Worker exits, similar to other
     resources like network sockets or file descriptors managed through
     the [`FileHandle`][] API. This option is automatically inherited by all
-    nested `Worker`s. **Default**: `true`.
+    nested `Worker`s. **Default:** `true`.
   * `transferList` {Object[]} If one or more `MessagePort`-like objects
     are passed in `workerData`, a `transferList` is required for those
     items or [`ERR_MISSING_MESSAGE_PORT_IN_TRANSFER_LIST`][] is thrown.
@@ -1085,7 +1143,6 @@ active handle in the event system. If the worker is already `unref()`ed calling
 [`ERR_WORKER_NOT_RUNNING`]: errors.md#ERR_WORKER_NOT_RUNNING
 [`EventTarget`]: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
 [`FileHandle`]: fs.md#fs_class_filehandle
-[`KeyObject`]: crypto.md#crypto_class_keyobject
 [`MessagePort`]: #worker_threads_class_messageport
 [`SharedArrayBuffer`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer
 [`Uint8Array`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array

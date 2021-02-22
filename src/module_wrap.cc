@@ -665,7 +665,14 @@ MaybeLocal<Value> ModuleWrap::SyntheticModuleEvaluationStepsCallback(
     try_catch.ReThrow();
     return MaybeLocal<Value>();
   }
-  return Undefined(isolate);
+
+  Local<Promise::Resolver> resolver;
+  if (!Promise::Resolver::New(context).ToLocal(&resolver)) {
+    return MaybeLocal<Value>();
+  }
+
+  resolver->Resolve(context, Undefined(isolate)).ToChecked();
+  return resolver->GetPromise();
 }
 
 void ModuleWrap::SetSyntheticExport(const FunctionCallbackInfo<Value>& args) {
@@ -722,10 +729,8 @@ void ModuleWrap::Initialize(Local<Object> target,
                             Local<Context> context,
                             void* priv) {
   Environment* env = Environment::GetCurrent(context);
-  Isolate* isolate = env->isolate();
 
   Local<FunctionTemplate> tpl = env->NewFunctionTemplate(New);
-  tpl->SetClassName(FIXED_ONE_BYTE_STRING(isolate, "ModuleWrap"));
   tpl->InstanceTemplate()->SetInternalFieldCount(
       ModuleWrap::kInternalFieldCount);
   tpl->Inherit(BaseObject::GetConstructorTemplate(env));
@@ -741,8 +746,8 @@ void ModuleWrap::Initialize(Local<Object> target,
   env->SetProtoMethodNoSideEffect(tpl, "getStaticDependencySpecifiers",
                                   GetStaticDependencySpecifiers);
 
-  target->Set(env->context(), FIXED_ONE_BYTE_STRING(isolate, "ModuleWrap"),
-              tpl->GetFunction(context).ToLocalChecked()).Check();
+  env->SetConstructorFunction(target, "ModuleWrap", tpl);
+
   env->SetMethod(target,
                  "setImportModuleDynamicallyCallback",
                  SetImportModuleDynamicallyCallback);

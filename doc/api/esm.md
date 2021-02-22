@@ -320,7 +320,7 @@ compatibility.
 The CommonJS module `require` always treats the files it references as CommonJS.
 
 Using `require` to load an ES module is not supported because ES modules have
-asynchronous execution. Instead, use use [`import()`][] to load an ES module
+asynchronous execution. Instead, use [`import()`][] to load an ES module
 from a CommonJS module.
 
 ### CommonJS Namespaces
@@ -441,7 +441,7 @@ Alterantively `module.createRequire()` can be used.
 
 Native modules are not currently supported with ES module imports.
 
-The can instead be loaded with [`module.createRequire()`][] or
+They can instead be loaded with [`module.createRequire()`][] or
 [`process.dlopen`][].
 
 #### No `require.resolve`
@@ -1016,6 +1016,8 @@ The resolver can throw the following errors:
   subpath in the package for the given module.
 * _Package Import Not Defined_: Package imports do not define the specifier.
 * _Module Not Found_: The package or module requested does not exist.
+* _Unsupported Directory Import_: The resolved path corresponds to a directory,
+  which is not a supported target for module imports.
 
 ### Resolver Algorithm Specification
 
